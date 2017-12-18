@@ -54,6 +54,7 @@ public class Menu extends Application {
      * @param args Command line arguments.
      */
     public static void main(String[] args) {
+        System.out.println("One Printy boi");
         launch(args);
     }
 }
