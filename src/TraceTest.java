@@ -9,17 +9,31 @@ import java.util.Random;
 
 public class TraceTest {
 
+    // Application constants
     private static final int MIN_DIRECT_TIME = 500000000; // 500 ms
     private static final int MAX_DIRECT_TIME = 2000000000;// 2000 ms
     private static final int WINDOW_WIDTH = 800;
     private static final int WINDOW_HEIGHT = 600;
-    private Label label = new Label("Time in ball: ");
-    private int ballXSpeed, ballYSpeed = 3;
-    private int ballX, ballY = -1;
-    private double circleSize = -1;
-    private boolean mouseInCircle = false;
+    private static final int RUNTIME = 30000;
+    private static final double MILLIS_TO_SECOND_DIVIDER = 1000.0;
+    private final Label timeInBallLabel = new Label("Time in ball: 0.00");
 
-    private long time = -1;
+    // Circle constants
+    private static final int CIRCLE_RADIUS = 40;
+    private static final Color CIRCLE_COLOUR = Color.RED;
+    private static final Color CIRCLE_ACTIVATION_COLOUR = Color.GREEN;
+
+    // Application properties
+    private boolean mouseInCircle = false;
+    private long waitTillTime = -1;
+    private BallHoverTimer timeTaken;
+    private BallHoverTimer timeOnBall;
+
+    // Ball properties
+    private int ballSpeed = 3;
+    private Circle targetBall;
+    private int ballX, ballY;
+    private boolean right, down;
 
     public Scene createScene() {
         // Create a group, to hold objects
@@ -28,55 +42,24 @@ public class TraceTest {
         // Creates a scene
         Scene s = new Scene(root, WINDOW_WIDTH, WINDOW_HEIGHT);
 
-        BallHoverTimer timer = new BallHoverTimer();
+        timeOnBall = new BallHoverTimer();
+        timeTaken = new BallHoverTimer();
 
-        // Creates a circle
-        Circle circle = new Circle();
-        circle.setCenterX(ballX);
-        circle.setCenterY(ballY);
-        circle.setRadius(40);
-        circleSize = circle.getLayoutBounds().getWidth();
-        circle.setFill(Color.RED);
+        // Creates a targetBall
+        targetBall = createBall();
 
-        ballX = (int) ((WINDOW_WIDTH / 2) - (circleSize / 2));
-        ballY = (int) ((WINDOW_HEIGHT / 2) - (circleSize / 2));
+        // Start the ball in the centre of the window
+        ballX = (int) ((WINDOW_WIDTH / 2) - (targetBall.getLayoutBounds().getWidth() / 2));
+        ballY = (int) ((WINDOW_HEIGHT / 2) - (targetBall.getLayoutBounds().getWidth() / 2));
 
-        circle.setOnMouseEntered(event -> {
-            timer.start();
-            circle.setFill(Color.GREEN);
-            mouseInCircle = true;
-        });
-        circle.setOnMouseExited(event -> {
-            circle.setFill(Color.RED);
-            timer.stop();
-            mouseInCircle = false;
-        });
-        root.getChildren().addAll(label, circle);
+        // Add the target ball and time labels to the scene
+        root.getChildren().addAll(timeInBallLabel, targetBall);
 
+        // Create main animation loop.
+        AnimationTimer animationTimer = createGameLoop();
 
-        // Main animation loop.
-        // Note: max 60fps
-        AnimationTimer animationTimer = new AnimationTimer() {
-            @Override
-            public void handle(long now) {
-                if(mouseInCircle) {
-                    timer.updateValue();
-                    label.setText("Time in ball: " + String.format("%.2f", timer.getTotalTime() / 1000.0));
-                }
-                if (now >= time) {
-                    // 500ms and 2000ms
-                    time = now + genRandTime(MIN_DIRECT_TIME, MAX_DIRECT_TIME);
-                    changeDirection();
-                }
-
-                // Move the ball right by 1px
-                moveBall(now);
-
-                // Render the new ball in
-                circle.setCenterX(ballX);
-                circle.setCenterY(ballY);
-            }
-        };
+        // Start the overall time elapsed
+        timeTaken.start();
 
         // Start the animation loop.
         animationTimer.start();
@@ -84,43 +67,98 @@ public class TraceTest {
         return s;
     }
 
+    private AnimationTimer createGameLoop() {
+        // Note: target and therefore max fps = 60
+        return new AnimationTimer() {
+            @Override
+            public void handle(long now) {
+                // Check we're still under the set number of seconds
+                timeTaken.updateValue();
+                if(timeTaken.getTotalTime() >= RUNTIME) this.stop();
+
+                // If the mouse is in the circle, update the time in ball label.
+                if(mouseInCircle) {
+                    timeOnBall.updateValue();
+                    timeInBallLabel.setText("Time in ball: " + String.format(
+                            "%.2f", timeOnBall.getTotalTime() / MILLIS_TO_SECOND_DIVIDER
+                    ));
+                }
+
+                // If the current time has surpassed the wait till time, change the direction of the ball.
+                if (now >= waitTillTime) {
+                    waitTillTime = now + genRandTime(MIN_DIRECT_TIME, MAX_DIRECT_TIME);
+                    changeDirection();
+                }
+
+                // If the ball is going out of bounds, stop it!
+                stopBallOOB();
+
+                // Change the balls coordinates according to new values
+                moveBall();
+
+                // Render the new ball into the scene
+                targetBall.setCenterX(ballX);
+                targetBall.setCenterY(ballY);
+            }
+        };
+    }
+
+    private Circle createBall() {
+        // Create the ball, set position and style
+        Circle ball = new Circle();
+        ball.setCenterX(ballX);
+        ball.setCenterY(ballY);
+        ball.setRadius(CIRCLE_RADIUS);
+        ball.setFill(CIRCLE_COLOUR);
+
+        // When the mouse enters the ball, start the timeOnBall timer and set the colour to green
+        ball.setOnMouseEntered(event -> {
+            timeOnBall.start();
+            ball.setFill(CIRCLE_ACTIVATION_COLOUR);
+            mouseInCircle = true;
+        });
+
+        // When the mouse exits the ball, stop the timeOnBall timer and set the colour to red
+        ball.setOnMouseExited(event -> {
+            ball.setFill(CIRCLE_COLOUR);
+            timeOnBall.stop();
+            mouseInCircle = false;
+        });
+        return ball;
+    }
+
     private int genRandTime(int min, int max) {
         // Generates an integer between min (inclusive) and max (exclusive)
-        return new Random().nextInt(max-min) + min;
+        return new Random().nextInt(max - min) + min;
     }
 
     private void changeDirection() {
+        // Randomly select if ball is going up, down, left, right
         Random r = new Random();
-        // Use these to change speed too
-        int xChange = r.nextInt(10);
-        int yChange = r.nextInt(10);
-        ballXSpeed = xChange;
-        ballYSpeed = yChange;
+        right = r.nextBoolean();
+        down = r.nextBoolean();
     }
 
-    private void moveBall(long now) {
-        stopBallOOB(now);
-        ballX += ballXSpeed;
-        ballY += ballYSpeed;
+    private void moveBall() {
+        // Move the ball on the X axis
+        if (right) ballX += ballSpeed;
+        else ballX -= ballSpeed;
+
+        // Move the ball on the right axis
+        if (down) ballY += ballSpeed;
+        else ballY -= ballSpeed;
     }
 
-    private void stopBallOOB(long now) {
-        boolean speedsChanged = false;
-        if (ballX + circleSize / 2 >= 800) {
-            ballXSpeed = -Math.abs(ballXSpeed);
-            speedsChanged = true;
-        } else if (ballX - circleSize / 2 <= 0) {
-            ballXSpeed = Math.abs(ballXSpeed);
-            speedsChanged = true;
-        }
-        if (ballY + circleSize / 2 >= 600) {
-            ballYSpeed = -Math.abs(ballYSpeed);
-            speedsChanged = true;
-        } else if (ballY - circleSize / 2 <= 0) {
-            ballYSpeed = Math.abs(ballYSpeed);
-            speedsChanged = true;
-        }
+    private void stopBallOOB() {
+        // Size of the ball
+        double ballSize = targetBall.getLayoutBounds().getWidth();
 
-        if (speedsChanged) time = now + genRandTime(MIN_DIRECT_TIME, MAX_DIRECT_TIME);
+        // If the ball has hit a horizontal wall
+        if (ballX + ballSize / 2 >= WINDOW_WIDTH || ballX - ballSize / 2 <= 0)
+            right = !right;
+
+        // If the ball has hit a vertical wall
+        if (ballY + ballSize / 2 >= WINDOW_HEIGHT || ballY - ballSize / 2 <= 0)
+            down = !down;
     }
 }
