@@ -1,6 +1,7 @@
 import javafx.animation.AnimationTimer;
 import javafx.scene.Group;
 import javafx.scene.Scene;
+import javafx.scene.control.Label;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 
@@ -8,13 +9,15 @@ import java.util.Random;
 
 public class TraceTest {
 
-    private static int MIN_DIRECT_TIME = 500000000; // 500 ms
-    private static int MAX_DIRECT_TIME = 2000000000;// 2000 ms
-    private int ballXSpeed = 5;
-    private int ballYSpeed = 5;
-    private int ballX = 100;
-    private int ballY = 100;
+    private static final int MIN_DIRECT_TIME = 500000000; // 500 ms
+    private static final int MAX_DIRECT_TIME = 2000000000;// 2000 ms
+    private static final int WINDOW_WIDTH = 800;
+    private static final int WINDOW_HEIGHT = 600;
+    private Label label = new Label("Time in ball: ");
+    private int ballXSpeed, ballYSpeed = 3;
+    private int ballX, ballY = -1;
     private double circleSize = -1;
+    private boolean mouseInCircle = false;
 
     private long time = -1;
 
@@ -23,11 +26,11 @@ public class TraceTest {
         Group root = new Group();
 
         // Creates a scene
-        Scene s = new Scene(root, 800, 600);
+        Scene s = new Scene(root, WINDOW_WIDTH, WINDOW_HEIGHT);
 
         BallHoverTimer timer = new BallHoverTimer();
 
-        // Creates a cirlce
+        // Creates a circle
         Circle circle = new Circle();
         circle.setCenterX(ballX);
         circle.setCenterY(ballY);
@@ -35,16 +38,20 @@ public class TraceTest {
         circleSize = circle.getLayoutBounds().getWidth();
         circle.setFill(Color.RED);
 
+        ballX = (int) ((WINDOW_WIDTH / 2) - (circleSize / 2));
+        ballY = (int) ((WINDOW_HEIGHT / 2) - (circleSize / 2));
+
         circle.setOnMouseEntered(event -> {
             timer.start();
             circle.setFill(Color.GREEN);
-            timer.updateValue();
+            mouseInCircle = true;
         });
         circle.setOnMouseExited(event -> {
             circle.setFill(Color.RED);
             timer.stop();
+            mouseInCircle = false;
         });
-        root.getChildren().add(circle);
+        root.getChildren().addAll(label, circle);
 
 
         // Main animation loop.
@@ -52,7 +59,10 @@ public class TraceTest {
         AnimationTimer animationTimer = new AnimationTimer() {
             @Override
             public void handle(long now) {
-                System.out.println(String.format("%.2f", timer.getTotalTime() / 1000.0));
+                if(mouseInCircle) {
+                    timer.updateValue();
+                    label.setText("Time in ball: " + String.format("%.2f", timer.getTotalTime() / 1000.0));
+                }
                 if (now >= time) {
                     // 500ms and 2000ms
                     time = now + genRandTime(MIN_DIRECT_TIME, MAX_DIRECT_TIME);
