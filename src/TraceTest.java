@@ -2,8 +2,10 @@ import javafx.animation.AnimationTimer;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import javafx.scene.text.Font;
 
 import java.util.Random;
 
@@ -15,8 +17,10 @@ public class TraceTest {
     private static final int WINDOW_WIDTH = 800;
     private static final int WINDOW_HEIGHT = 600;
     private static final int RUNTIME = 30000;
+    private static final Font labelFont = new Font("Verdana", 12);
     private static final double MILLIS_TO_SECOND_DIVIDER = 1000.0;
     private final Label timeInBallLabel = new Label("Time in ball: 0.00");
+    private final Label timeLeftLabel = new Label("Time left: ");
 
     // Circle constants
     private static final int CIRCLE_RADIUS = 40;
@@ -39,6 +43,13 @@ public class TraceTest {
         // Create a group, to hold objects
         Group root = new Group();
 
+        // VBox holds the timer labels
+        VBox timers = new VBox();
+        timers.getChildren().addAll(timeInBallLabel, timeLeftLabel);
+
+        timeInBallLabel.setFont(labelFont);
+        timeLeftLabel.setFont(labelFont);
+
         // Creates a scene
         Scene s = new Scene(root, WINDOW_WIDTH, WINDOW_HEIGHT);
 
@@ -53,7 +64,7 @@ public class TraceTest {
         ballY = (int) ((WINDOW_HEIGHT / 2) - (targetBall.getLayoutBounds().getWidth() / 2));
 
         // Add the target ball and time labels to the scene
-        root.getChildren().addAll(timeInBallLabel, targetBall);
+        root.getChildren().addAll(targetBall, timers);
 
         // Create main animation loop.
         AnimationTimer animationTimer = createGameLoop();
@@ -74,14 +85,15 @@ public class TraceTest {
             public void handle(long now) {
                 // Check we're still under the set number of seconds
                 timeTaken.updateValue();
-                if(timeTaken.getTotalTime() >= RUNTIME) this.stop();
+                if(timeTaken.getTotalTime() >= RUNTIME)
+                    this.stop();
+                else
+                    timeLeftLabel.setText("Time left: " + millisToSeconds(RUNTIME - timeTaken.getTotalTime()));
 
                 // If the mouse is in the circle, update the time in ball label.
                 if(mouseInCircle) {
                     timeOnBall.updateValue();
-                    timeInBallLabel.setText("Time in ball: " + String.format(
-                            "%.2f", timeOnBall.getTotalTime() / MILLIS_TO_SECOND_DIVIDER
-                    ));
+                    timeInBallLabel.setText("Time in ball: " + millisToSeconds(timeOnBall.getTotalTime()));
                 }
 
                 // If the current time has surpassed the wait till time, change the direction of the ball.
@@ -101,6 +113,10 @@ public class TraceTest {
                 targetBall.setCenterY(ballY);
             }
         };
+    }
+
+    private String millisToSeconds(double millis) {
+        return String.format("%.2f", millis / MILLIS_TO_SECOND_DIVIDER);
     }
 
     private Circle createBall() {
@@ -154,11 +170,15 @@ public class TraceTest {
         double ballSize = targetBall.getLayoutBounds().getWidth();
 
         // If the ball has hit a horizontal wall
-        if (ballX + ballSize / 2 >= WINDOW_WIDTH || ballX - ballSize / 2 <= 0)
+        if (ballX + ballSize / 2 >= WINDOW_WIDTH || ballX - ballSize / 2 <= 0) {
             right = !right;
+            waitTillTime += MIN_DIRECT_TIME;
+        }
 
         // If the ball has hit a vertical wall
-        if (ballY + ballSize / 2 >= WINDOW_HEIGHT || ballY - ballSize / 2 <= 0)
+        if (ballY + ballSize / 2 >= WINDOW_HEIGHT || ballY - ballSize / 2 <= 0) {
             down = !down;
+            waitTillTime += MIN_DIRECT_TIME;
+        }
     }
 }
