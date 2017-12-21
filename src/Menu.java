@@ -7,8 +7,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
-import java.awt.*;
-
 public class Menu extends Application {
 
     /**
@@ -47,6 +45,7 @@ public class Menu extends Application {
         root.getChildren().addAll(title, reactionTestButton, traceTestButton);
 
         // Set the primary stage to the scene we've made
+        primaryStage.setTitle("Mouse skills");
         primaryStage.setScene(s);
         primaryStage.show();
     }
