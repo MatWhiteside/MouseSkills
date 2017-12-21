@@ -1,7 +1,9 @@
 import javafx.animation.AnimationTimer;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
+import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
@@ -20,28 +22,45 @@ public class TraceTest {
     private static final int MAX_DIRECT_TIME = 2000000000;// 2000 ms
     private static final int WINDOW_WIDTH = 800;
     private static final int WINDOW_HEIGHT = 600;
-    private static final int RUNTIME = 30000;
-    private static final Font labelFont = new Font("Verdana", 12);
+    private static final int BALL_AREA_LEFT_BOUNDARY = WINDOW_WIDTH/4;
+    private static final Font labelFont = new Font("Verdana", 16);
     private static final double MILLIS_TO_SECOND_DIVIDER = 1000.0;
-    private final Label timeInBallLabel = new Label("Time in ball: 0.00");
-    private final Label timeLeftLabel = new Label("Time left: ");
 
-    // Circle constants
-    private static final int CIRCLE_RADIUS = 40;
-    private static final Color CIRCLE_COLOUR = Color.RED;
-    private static final Color CIRCLE_ACTIVATION_COLOUR = Color.GREEN;
+    // Settings bar constants
+    private static final Label BALL_SPEED_LABEL = new Label("Ball speed");
+    private static final Label BALL_THICKNESS_LABEL = new Label("Ball thickness");
+    private static final Label RUNTIME_LABEL = new Label("Runtime");
+    private static final Label ON_BALL_COLOUR_LABEL = new Label("On ball colour");
+    private static final Label OFF_BALL_COLOUR_LABEL = new Label("Off ball colour");
+    private static final Insets SETTINGS_LABEL_INSETS = new Insets(20, 0, 0, 0);
+    private static final Insets SETTINGS_BUTTON_INSETS = new Insets(30, 0, 0, 0);
+    private static final Insets SETTINGS_PADDING = new Insets(0, 10, 0, 10);
 
     // Application properties
+    private final Label timeInBallLabel = new Label("Time in ball: 0.00");
+    private final Label timeLeftLabel = new Label("Time left: ");
     private boolean mouseInCircle = false;
     private long waitTillTime = -1;
     private BallHoverTimer timeTaken;
     private BallHoverTimer timeOnBall;
+    private int runtime = 30000;
+
+    // Settings bar properties
+    private ColorPicker offBallColourPicker;
+    private ColorPicker onBallColourPicker;
+    private Slider ballSpeedSlider;
+    private Slider ballThicknessSlider;
+    private TextField runtimeTextField;
+    private Button applyButton;
 
     // Ball properties
     private int ballSpeed = 3;
     private Circle targetBall;
     private int ballX, ballY;
     private boolean right, down;
+    private int circleRadius = 40;
+    private Color circleColour = Color.RED;
+    private Color circleActivationColour = Color.GREEN;
 
     /**
      * Creates the main scene used for the class.
@@ -52,8 +71,7 @@ public class TraceTest {
         Group root = new Group();
 
         // VBox holds the timer labels
-        VBox timers = new VBox();
-        timers.getChildren().addAll(timeInBallLabel, timeLeftLabel);
+        VBox timers = createSettingsGUI();
 
         timeInBallLabel.setFont(labelFont);
         timeLeftLabel.setFont(labelFont);
@@ -87,6 +105,119 @@ public class TraceTest {
     }
 
     /*
+    Creates a VBox containing the whole settings side bar.
+    This side bar contains:
+     - Time mouse was in ball
+     - Time left
+     - Colour picker for when mouse isn't on the ball
+     - Colour picker fo when mouse is on the ball
+     - Slider for ball speed
+     - Slider for ball thickness
+     - Text box for runtime
+     */
+    private VBox createSettingsGUI() {
+        VBox parent = new VBox();
+
+        // Create colour picker and set its value to the current one
+        offBallColourPicker = new ColorPicker();
+        offBallColourPicker.setValue(circleColour);
+
+        // Create colour picker and set its value to the current one
+        onBallColourPicker = new ColorPicker();
+        onBallColourPicker.setValue(circleActivationColour);
+
+        // Create ball speed slider and set its value to the current one
+        ballSpeedSlider = new Slider();
+        ballSpeedSlider.setMin(0);
+        ballSpeedSlider.setMax(10);
+        ballSpeedSlider.setShowTickMarks(true);
+        ballSpeedSlider.setShowTickLabels(true);
+        ballSpeedSlider.setValue(ballSpeed);
+
+        // Create ball thickness slider and set its value to the current one
+        ballThicknessSlider = new Slider();
+        ballThicknessSlider.setMin(0);
+        ballThicknessSlider.setMax(100);
+        ballThicknessSlider.setShowTickMarks(true);
+        ballThicknessSlider.setShowTickLabels(true);
+        ballThicknessSlider.setValue(circleRadius);
+
+        // Create the textfield that takes the runtime input
+        // Note: the text property means that only numbers can be entered into the text field
+        runtimeTextField = new TextField();
+        runtimeTextField.setText(String.valueOf((int) (runtime / MILLIS_TO_SECOND_DIVIDER)));
+        runtimeTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+            if(!newValue.matches("\\d*")) {
+                runtimeTextField.setText(oldValue);
+            }
+        });
+
+        // Create apply button that updates variables about the scene and resets the scene.
+        applyButton = new Button("Apply & reset");
+        applyButton.setPrefWidth(Double.MAX_VALUE);
+        applyButton.setOnAction(event -> {
+            circleColour = offBallColourPicker.getValue();
+            circleActivationColour = onBallColourPicker.getValue();
+            ballSpeed = (int) ballSpeedSlider.getValue();
+            circleRadius = (int) ballThicknessSlider.getValue();
+            runtime = (int) (Integer.valueOf(runtimeTextField.getText()) * MILLIS_TO_SECOND_DIVIDER);
+            reset();
+        });
+
+        // Changing the fonts of the labels and the buttons
+        OFF_BALL_COLOUR_LABEL.setFont(labelFont);
+        ON_BALL_COLOUR_LABEL.setFont(labelFont);
+        BALL_SPEED_LABEL.setFont(labelFont);
+        BALL_THICKNESS_LABEL.setFont(labelFont);
+        RUNTIME_LABEL.setFont(labelFont);
+        applyButton.setFont(labelFont);
+
+        // Adding 20px padding above all the labels and 30px above the button
+        VBox.setMargin(OFF_BALL_COLOUR_LABEL, SETTINGS_LABEL_INSETS);
+        VBox.setMargin(ON_BALL_COLOUR_LABEL, SETTINGS_LABEL_INSETS);
+        VBox.setMargin(BALL_SPEED_LABEL, SETTINGS_LABEL_INSETS);
+        VBox.setMargin(BALL_THICKNESS_LABEL, SETTINGS_LABEL_INSETS);
+        VBox.setMargin(RUNTIME_LABEL, SETTINGS_LABEL_INSETS);
+        VBox.setMargin(applyButton, SETTINGS_BUTTON_INSETS);
+
+        // Setting styles for the VBox and adding all the elements to it
+        parent.setAlignment(Pos.CENTER_LEFT);
+        parent.setPadding(SETTINGS_PADDING);
+        parent.setStyle("-fx-background-color: mintcream");
+        parent.setPrefSize(BALL_AREA_LEFT_BOUNDARY, WINDOW_HEIGHT);
+        parent.getChildren().addAll(
+                timeInBallLabel, timeLeftLabel,
+                OFF_BALL_COLOUR_LABEL, offBallColourPicker,
+                ON_BALL_COLOUR_LABEL, onBallColourPicker,
+                BALL_SPEED_LABEL, ballSpeedSlider,
+                BALL_THICKNESS_LABEL, ballThicknessSlider,
+                RUNTIME_LABEL, runtimeTextField,
+                applyButton
+        );
+
+        return parent;
+    }
+
+    /*
+    Resets all current progress, and applies the settings given in the settings panel.
+     */
+    private void reset() {
+        // Change some target ball properties
+        targetBall.setFill(offBallColourPicker.getValue());
+        targetBall.setRadius(ballThicknessSlider.getValue());
+
+        // Reset both the timers
+        timeTaken.stop();
+        timeTaken.reset();
+        timeOnBall.stop();
+        timeOnBall.reset();
+
+        // Start the timer overall runtime timer, set the text to 0 for the other one.
+        timeTaken.start();
+        timeInBallLabel.setText("Time in ball: 0.00");
+    }
+
+    /*
     Creates the main game loop.
      */
     private AnimationTimer createGameLoop() {
@@ -96,10 +227,10 @@ public class TraceTest {
             public void handle(long now) {
                 // Check we're still under the set number of seconds
                 timeTaken.updateValue();
-                if(timeTaken.getTotalTime() >= RUNTIME)
+                if(timeTaken.getTotalTime() >= runtime)
                     this.stop();
                 else
-                    timeLeftLabel.setText("Time left: " + millisToSeconds(RUNTIME - timeTaken.getTotalTime()));
+                    timeLeftLabel.setText("Time left: " + millisToSeconds(runtime - timeTaken.getTotalTime()));
 
                 // If the mouse is in the circle, update the time in ball label.
                 if(mouseInCircle) {
@@ -141,19 +272,19 @@ public class TraceTest {
         Circle ball = new Circle();
         ball.setCenterX(ballX);
         ball.setCenterY(ballY);
-        ball.setRadius(CIRCLE_RADIUS);
-        ball.setFill(CIRCLE_COLOUR);
+        ball.setRadius(circleRadius);
+        ball.setFill(circleColour);
 
         // When the mouse enters the ball, start the timeOnBall timer and set the colour to green
         ball.setOnMouseEntered(event -> {
             timeOnBall.start();
-            ball.setFill(CIRCLE_ACTIVATION_COLOUR);
+            ball.setFill(circleActivationColour);
             mouseInCircle = true;
         });
 
         // When the mouse exits the ball, stop the timeOnBall timer and set the colour to red
         ball.setOnMouseExited(event -> {
-            ball.setFill(CIRCLE_COLOUR);
+            ball.setFill(circleColour);
             timeOnBall.stop();
             mouseInCircle = false;
         });
@@ -200,7 +331,7 @@ public class TraceTest {
         double ballSize = targetBall.getLayoutBounds().getWidth();
 
         // If the ball has hit a horizontal wall
-        if (ballX + ballSize / 2 >= WINDOW_WIDTH || ballX - ballSize / 2 <= 0) {
+        if (ballX + ballSize / 2 >= WINDOW_WIDTH || ballX - ballSize / 2 <= BALL_AREA_LEFT_BOUNDARY) {
             right = !right;
             waitTillTime += MIN_DIRECT_TIME;
         }
