@@ -18,4 +18,9 @@ public class BallHoverTimer {
     public double getTotalTime() {
         return totalTime;
     }
+
+    public void reset() {
+        totalTime = 0.00;
+        startTime = 0.00;
+    }
 }
