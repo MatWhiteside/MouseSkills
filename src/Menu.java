@@ -7,18 +7,16 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
-public class Menu extends Application {
+public class Menu {
 
     /**
-     * Entry point for the application.
-     * @param primaryStage Main stage.
-     * @throws Exception JavaFX exception.
+     * Creates the menu scene.
+     * @param stage Stage the program is using.
+     * @return Scene containing the menu GUI.
      */
-    @Override
-    public void start(Stage primaryStage) throws Exception  {
+    public Scene createScene(Stage stage) {
         // Create the parent layout and the scene
         VBox root = new VBox();
-        Scene s = new Scene(root, 300, 300);
 
         // Create a title
         Label title = new Label("Menu");
@@ -28,14 +26,14 @@ public class Menu extends Application {
         Button reactionTestButton = new Button("Reaction test");
         reactionTestButton.setPrefSize(150, 40);
         reactionTestButton.setOnAction(event -> {
-            primaryStage.setScene(new ReactionTest().createScene());
+            stage.setScene(new ReactionTest().createScene());
         });
 
         // Create a button for the trace test
         Button traceTestButton = new Button("Trace test");
         traceTestButton.setPrefSize(150, 40);
         traceTestButton.setOnAction(event -> {
-            primaryStage.setScene(new TraceTest().createScene());
+            stage.setScene(new TraceTest().createScene(stage));
         });
 
         // Center everything in the VBox, set the spacing between elements and add all the elements
@@ -44,18 +42,6 @@ public class Menu extends Application {
         root.setSpacing(10);
         root.getChildren().addAll(title, reactionTestButton, traceTestButton);
 
-        // Set the primary stage to the scene we've made
-        primaryStage.setTitle("Mouse skills");
-        primaryStage.setScene(s);
-        primaryStage.show();
-    }
-
-    /**
-     * Backup entry point for the application.
-     * @param args Command line arguments.
-     */
-    public static void main(String[] args) {
-        System.out.println("One Printy boi");
-        launch(args);
+        return new Scene(root, 300, 300);
     }
 }

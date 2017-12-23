@@ -11,6 +11,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
+import javafx.stage.Stage;
 import javafx.util.Duration;
 
 import java.util.*;
@@ -89,7 +90,7 @@ public class TraceTest {
      * Creates the main scene used for the class.
      * @return {@link Scene} containing the ball trace application.
      */
-    public Scene createScene() {
+    public Scene createScene(Stage stage) {
         // Create a group, to hold objects
         Group root = new Group();
 
@@ -116,7 +117,7 @@ public class TraceTest {
         root.getChildren().addAll(targetBall, timers);
 
         // Create main animation loop.
-        AnimationTimer animationTimer = createGameLoop();
+        AnimationTimer animationTimer = createGameLoop(stage);
 
         // Start the overall time elapsed
         timeTaken.start();
@@ -312,17 +313,26 @@ public class TraceTest {
     /*
     Creates the main game loop.
      */
-    private AnimationTimer createGameLoop() {
+    private AnimationTimer createGameLoop(Stage stage) {
         // Note: target and therefore max fps = 60
         return new AnimationTimer() {
             @Override
             public void handle(long now) {
                 // Check we're still under the set number of seconds
                 timeTaken.updateValue();
-                if(timeTaken.getTotalTime() >= runtime)
+                if(timeTaken.getTotalTime() >= runtime) {
+                    stage.setScene(new TraceTestResults().createScene(
+                            millisToSeconds(timeOnBall.getTotalTime()),
+                            millisToSeconds(runtime),
+                            String.valueOf(ballSpeed),
+                            String.valueOf(circleRadius),
+                            stage
+                    ));
                     this.stop();
-                else
+                } else {
                     timeLeftLabel.setText("Time left: " + millisToSeconds(runtime - timeTaken.getTotalTime()));
+                }
+
 
                 // If the mouse is in the circle, update the time in ball label.
                 if(mouseInCircle) {
