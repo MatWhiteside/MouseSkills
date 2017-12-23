@@ -58,6 +58,7 @@ public class TraceTest {
     private BallHoverTimer timeTaken;
     private BallHoverTimer timeOnBall;
     private int runtime = 30000;
+    private Timeline RGBTimeline = null;
 
     // Settings bar properties
     private ColorPicker offBallColourPicker;
@@ -167,6 +168,8 @@ public class TraceTest {
             }
         });
 
+        RGBBall = new CheckBox();
+
         // Create apply button that updates variables about the scene and resets the scene.
         applyButton = new Button("Apply & reset");
         applyButton.setPrefWidth(Double.MAX_VALUE);
@@ -176,6 +179,12 @@ public class TraceTest {
             ballSpeed = (int) ballSpeedSlider.getValue();
             circleRadius = (int) ballThicknessSlider.getValue();
             runtime = (int) (Integer.valueOf(runtimeTextField.getText()) * MILLIS_TO_SECOND_DIVIDER);
+
+            stopRGB();
+            if(RGBBall.isSelected()) {
+                makeRGB(targetBall);
+            }
+
             reset();
         });
 
@@ -185,6 +194,7 @@ public class TraceTest {
         BALL_SPEED_LABEL.setFont(labelFont);
         BALL_THICKNESS_LABEL.setFont(labelFont);
         RUNTIME_LABEL.setFont(labelFont);
+        RGB_BALL_LABEL.setFont(labelFont);
         applyButton.setFont(labelFont);
 
         // Adding 20px padding above all the labels and 30px above the button
@@ -193,6 +203,7 @@ public class TraceTest {
         VBox.setMargin(BALL_SPEED_LABEL, SETTINGS_LABEL_INSETS);
         VBox.setMargin(BALL_THICKNESS_LABEL, SETTINGS_LABEL_INSETS);
         VBox.setMargin(RUNTIME_LABEL, SETTINGS_LABEL_INSETS);
+        VBox.setMargin(RGB_BALL_LABEL, SETTINGS_LABEL_INSETS);
         VBox.setMargin(applyButton, SETTINGS_BUTTON_INSETS);
 
         // Setting styles for the VBox and adding all the elements to it
@@ -207,6 +218,7 @@ public class TraceTest {
                 BALL_SPEED_LABEL, ballSpeedSlider,
                 BALL_THICKNESS_LABEL, ballThicknessSlider,
                 RUNTIME_LABEL, runtimeTextField,
+                RGB_BALL_LABEL, RGBBall,
                 applyButton
         );
 
@@ -250,10 +262,20 @@ public class TraceTest {
     Changes the updater value every RGB_CHANGE_PERIOD ms to the relevant colour in the NEXT_COLOR_MAP.
      */
     private void makeRGB(Supplier<Paint> currentFill, Consumer<Paint> updater) {
-        Timeline RGBTimeline = new Timeline(new KeyFrame(Duration.seconds(RGB_CHANGE_PERIOD),
+        RGBTimeline = new Timeline(new KeyFrame(Duration.seconds(RGB_CHANGE_PERIOD),
                 event -> updater.accept(NEXT_COLOR_MAP.get(currentFill.get()))));
         RGBTimeline.setCycleCount(Timeline.INDEFINITE);
         RGBTimeline.play();
+    }
+
+    /*
+    Stops the RGBTimeline and sets it to null.
+     */
+    private void stopRGB() {
+        if(RGBTimeline != null) {
+            RGBTimeline.stop();
+            RGBTimeline = null;
+        }
     }
 
     /*
