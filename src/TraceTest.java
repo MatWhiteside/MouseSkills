@@ -30,7 +30,7 @@ public class TraceTest {
     private static final int WINDOW_WIDTH = 800;
     private static final int WINDOW_HEIGHT = 600;
     private static final int BALL_AREA_LEFT_BOUNDARY = WINDOW_WIDTH/4;
-    private static final Font labelFont = new Font("Verdana", 16);
+    private static final Font LABEL_FONT = new Font("Verdana", 16);
     private static final double MILLIS_TO_SECOND_DIVIDER = 1000.0;
     private static final double RGB_CHANGE_PERIOD = 0.25;
     private static final double SCENE_RGB_DELAY = 0.25;
@@ -97,8 +97,8 @@ public class TraceTest {
         // VBox holds the timer labels
         VBox timers = createSettingsGUI();
 
-        timeInBallLabel.setFont(labelFont);
-        timeLeftLabel.setFont(labelFont);
+        timeInBallLabel.setFont(LABEL_FONT);
+        timeLeftLabel.setFont(LABEL_FONT);
 
         // Creates a scene
         scene = new Scene(root, WINDOW_WIDTH, WINDOW_HEIGHT);
@@ -203,14 +203,14 @@ public class TraceTest {
         });
 
         // Changing the fonts of the labels and the buttons
-        OFF_BALL_COLOUR_LABEL.setFont(labelFont);
-        ON_BALL_COLOUR_LABEL.setFont(labelFont);
-        BALL_SPEED_LABEL.setFont(labelFont);
-        BALL_THICKNESS_LABEL.setFont(labelFont);
-        RUNTIME_LABEL.setFont(labelFont);
-        RGB_BALL_LABEL.setFont(labelFont);
-        RGB_SCENE_LABEL.setFont(labelFont);
-        applyButton.setFont(labelFont);
+        OFF_BALL_COLOUR_LABEL.setFont(LABEL_FONT);
+        ON_BALL_COLOUR_LABEL.setFont(LABEL_FONT);
+        BALL_SPEED_LABEL.setFont(LABEL_FONT);
+        BALL_THICKNESS_LABEL.setFont(LABEL_FONT);
+        RUNTIME_LABEL.setFont(LABEL_FONT);
+        RGB_BALL_LABEL.setFont(LABEL_FONT);
+        RGB_SCENE_LABEL.setFont(LABEL_FONT);
+        applyButton.setFont(LABEL_FONT);
 
         // Adding 20px padding above all the labels and 30px above the button
         VBox.setMargin(OFF_BALL_COLOUR_LABEL, SETTINGS_LABEL_INSETS);
