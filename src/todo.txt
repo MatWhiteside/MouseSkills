@@ -1,0 +1,2 @@
+Add back button from TraceTest to menu
+Make resizing work properly on all windows
