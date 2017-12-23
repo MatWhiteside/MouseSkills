@@ -32,6 +32,7 @@ public class TraceTest {
     private static final Font labelFont = new Font("Verdana", 16);
     private static final double MILLIS_TO_SECOND_DIVIDER = 1000.0;
     private static final double RGB_CHANGE_PERIOD = 0.25;
+    private static final double SCENE_RGB_DELAY = 0.25;
     private static final Map<Color, Color> NEXT_COLOR_MAP = new HashMap<>() {{
         put(Color.WHITE, Color.RED);
         put(Color.RED, Color.GREEN);
@@ -46,6 +47,7 @@ public class TraceTest {
     private static final Label ON_BALL_COLOUR_LABEL = new Label("On ball colour");
     private static final Label OFF_BALL_COLOUR_LABEL = new Label("Off ball colour");
     private static final Label RGB_BALL_LABEL = new Label("RGB Ball: ");
+    private static final Label RGB_SCENE_LABEL = new Label("RGB Scene: ");
     private static final Insets SETTINGS_LABEL_INSETS = new Insets(20, 0, 0, 0);
     private static final Insets SETTINGS_BUTTON_INSETS = new Insets(30, 0, 0, 0);
     private static final Insets SETTINGS_PADDING = new Insets(0, 10, 0, 10);
@@ -53,12 +55,15 @@ public class TraceTest {
     // Application properties
     private final Label timeInBallLabel = new Label("Time in ball: 0.00");
     private final Label timeLeftLabel = new Label("Time left: ");
+    private Scene scene;
     private boolean mouseInCircle = false;
     private long waitTillTime = -1;
     private BallHoverTimer timeTaken;
     private BallHoverTimer timeOnBall;
     private int runtime = 30000;
-    private Timeline RGBTimeline = null;
+    private Timeline RGBBallTimeline = null;
+    private Timeline RGBSceneTimeline = null;
+    private boolean isBallRGB = false;
 
     // Settings bar properties
     private ColorPicker offBallColourPicker;
@@ -68,6 +73,8 @@ public class TraceTest {
     private TextField runtimeTextField;
     private Button applyButton;
     private CheckBox RGBBall;
+    private CheckBox RGBScene;
+
 
     // Ball properties
     private int ballSpeed = 3;
@@ -93,7 +100,7 @@ public class TraceTest {
         timeLeftLabel.setFont(labelFont);
 
         // Creates a scene
-        Scene s = new Scene(root, WINDOW_WIDTH, WINDOW_HEIGHT);
+        scene = new Scene(root, WINDOW_WIDTH, WINDOW_HEIGHT);
 
         timeOnBall = new BallHoverTimer();
         timeTaken = new BallHoverTimer();
@@ -117,7 +124,7 @@ public class TraceTest {
         // Start the animation loop.
         animationTimer.start();
 
-        return s;
+        return scene;
     }
 
     /*
@@ -169,6 +176,7 @@ public class TraceTest {
         });
 
         RGBBall = new CheckBox();
+        RGBScene = new CheckBox();
 
         // Create apply button that updates variables about the scene and resets the scene.
         applyButton = new Button("Apply & reset");
@@ -181,8 +189,13 @@ public class TraceTest {
             runtime = (int) (Integer.valueOf(runtimeTextField.getText()) * MILLIS_TO_SECOND_DIVIDER);
 
             stopRGB();
+
             if(RGBBall.isSelected()) {
                 makeRGB(targetBall);
+                isBallRGB = true;
+            }
+            if(RGBScene.isSelected()) {
+                makeRGB(scene);
             }
 
             reset();
@@ -195,6 +208,7 @@ public class TraceTest {
         BALL_THICKNESS_LABEL.setFont(labelFont);
         RUNTIME_LABEL.setFont(labelFont);
         RGB_BALL_LABEL.setFont(labelFont);
+        RGB_SCENE_LABEL.setFont(labelFont);
         applyButton.setFont(labelFont);
 
         // Adding 20px padding above all the labels and 30px above the button
@@ -204,6 +218,7 @@ public class TraceTest {
         VBox.setMargin(BALL_THICKNESS_LABEL, SETTINGS_LABEL_INSETS);
         VBox.setMargin(RUNTIME_LABEL, SETTINGS_LABEL_INSETS);
         VBox.setMargin(RGB_BALL_LABEL, SETTINGS_LABEL_INSETS);
+        VBox.setMargin(RGB_SCENE_LABEL, SETTINGS_LABEL_INSETS);
         VBox.setMargin(applyButton, SETTINGS_BUTTON_INSETS);
 
         // Setting styles for the VBox and adding all the elements to it
@@ -219,6 +234,7 @@ public class TraceTest {
                 BALL_THICKNESS_LABEL, ballThicknessSlider,
                 RUNTIME_LABEL, runtimeTextField,
                 RGB_BALL_LABEL, RGBBall,
+                RGB_SCENE_LABEL, RGBScene,
                 applyButton
         );
 
@@ -248,33 +264,48 @@ public class TraceTest {
     Given a circle c makes the ball change in the sequence red-green-blue every RGB_CHANGE_PERIOD ms.
      */
     private void makeRGB(Circle c) {
-        makeRGB(c::getFill, c::setFill);
+        makeRGB(c::getFill, c::setFill, true);
     }
 
     /*
     Given a scene s makes the scene change in the sequence red-green-blue every RGB_CHANGE_PERIOD ms.
      */
     private void makeRGB(Scene s) {
-        makeRGB(s::getFill, s::setFill);
+        makeRGB(s::getFill, s::setFill, false);
     }
 
     /*
     Changes the updater value every RGB_CHANGE_PERIOD ms to the relevant colour in the NEXT_COLOR_MAP.
+    Third param is true iff the ball is being made RGB, not the scene.
      */
-    private void makeRGB(Supplier<Paint> currentFill, Consumer<Paint> updater) {
-        RGBTimeline = new Timeline(new KeyFrame(Duration.seconds(RGB_CHANGE_PERIOD),
-                event -> updater.accept(NEXT_COLOR_MAP.get(currentFill.get()))));
-        RGBTimeline.setCycleCount(Timeline.INDEFINITE);
-        RGBTimeline.play();
+    private void makeRGB(Supplier<Paint> currentFill, Consumer<Paint> updater, boolean ball) {
+        if(ball) {
+            RGBBallTimeline = new Timeline(new KeyFrame(Duration.seconds(RGB_CHANGE_PERIOD),
+                    event -> updater.accept(NEXT_COLOR_MAP.get(currentFill.get()))));
+            RGBBallTimeline.setCycleCount(Timeline.INDEFINITE);
+            RGBBallTimeline.play();
+        } else {
+            RGBSceneTimeline = new Timeline(new KeyFrame(Duration.seconds(RGB_CHANGE_PERIOD),
+                    event -> updater.accept(NEXT_COLOR_MAP.get(currentFill.get()))));
+            RGBSceneTimeline.setCycleCount(Timeline.INDEFINITE);
+            RGBSceneTimeline.setDelay(Duration.seconds(SCENE_RGB_DELAY));
+            RGBSceneTimeline.play();
+        }
     }
 
     /*
-    Stops the RGBTimeline and sets it to null.
+    Stops both RGB timelines and sets them to null.
      */
     private void stopRGB() {
-        if(RGBTimeline != null) {
-            RGBTimeline.stop();
-            RGBTimeline = null;
+        if(RGBBallTimeline != null) {
+            RGBBallTimeline.stop();
+            RGBBallTimeline = null;
+            isBallRGB = false;
+        }
+        if(RGBSceneTimeline != null) {
+            RGBSceneTimeline.stop();
+            RGBSceneTimeline = null;
+            scene.setFill(Color.WHITE);
         }
     }
 
@@ -339,13 +370,13 @@ public class TraceTest {
         // When the mouse enters the ball, start the timeOnBall timer and set the colour to green
         ball.setOnMouseEntered(event -> {
             timeOnBall.start();
-            ball.setFill(circleActivationColour);
+            if(!isBallRGB) ball.setFill(circleActivationColour);
             mouseInCircle = true;
         });
 
         // When the mouse exits the ball, stop the timeOnBall timer and set the colour to red
         ball.setOnMouseExited(event -> {
-            ball.setFill(circleColour);
+            if(!isBallRGB) ball.setFill(circleColour);
             timeOnBall.stop();
             mouseInCircle = false;
         });
