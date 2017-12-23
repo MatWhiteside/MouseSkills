@@ -1,4 +1,6 @@
 import javafx.animation.AnimationTimer;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
@@ -6,10 +8,14 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
+import javafx.util.Duration;
 
-import java.util.Random;
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * Class that models a ball somewhat randomly moving around a window, the aim is to hover the mouse
@@ -25,6 +31,13 @@ public class TraceTest {
     private static final int BALL_AREA_LEFT_BOUNDARY = WINDOW_WIDTH/4;
     private static final Font labelFont = new Font("Verdana", 16);
     private static final double MILLIS_TO_SECOND_DIVIDER = 1000.0;
+    private static final double RGB_CHANGE_PERIOD = 0.25;
+    private static final Map<Color, Color> NEXT_COLOR_MAP = new HashMap<>() {{
+        put(Color.WHITE, Color.RED);
+        put(Color.RED, Color.GREEN);
+        put(Color.GREEN, Color.BLUE);
+        put(Color.BLUE, Color.RED);
+    }};
 
     // Settings bar constants
     private static final Label BALL_SPEED_LABEL = new Label("Ball speed");
@@ -32,6 +45,7 @@ public class TraceTest {
     private static final Label RUNTIME_LABEL = new Label("Runtime");
     private static final Label ON_BALL_COLOUR_LABEL = new Label("On ball colour");
     private static final Label OFF_BALL_COLOUR_LABEL = new Label("Off ball colour");
+    private static final Label RGB_BALL_LABEL = new Label("RGB Ball: ");
     private static final Insets SETTINGS_LABEL_INSETS = new Insets(20, 0, 0, 0);
     private static final Insets SETTINGS_BUTTON_INSETS = new Insets(30, 0, 0, 0);
     private static final Insets SETTINGS_PADDING = new Insets(0, 10, 0, 10);
@@ -52,6 +66,7 @@ public class TraceTest {
     private Slider ballThicknessSlider;
     private TextField runtimeTextField;
     private Button applyButton;
+    private CheckBox RGBBall;
 
     // Ball properties
     private int ballSpeed = 3;
@@ -215,6 +230,30 @@ public class TraceTest {
         // Start the timer overall runtime timer, set the text to 0 for the other one.
         timeTaken.start();
         timeInBallLabel.setText("Time in ball: 0.00");
+    }
+
+    /*
+    Given a circle c makes the ball change in the sequence red-green-blue every RGB_CHANGE_PERIOD ms.
+     */
+    private void makeRGB(Circle c) {
+        makeRGB(c::getFill, c::setFill);
+    }
+
+    /*
+    Given a scene s makes the scene change in the sequence red-green-blue every RGB_CHANGE_PERIOD ms.
+     */
+    private void makeRGB(Scene s) {
+        makeRGB(s::getFill, s::setFill);
+    }
+
+    /*
+    Changes the updater value every RGB_CHANGE_PERIOD ms to the relevant colour in the NEXT_COLOR_MAP.
+     */
+    private void makeRGB(Supplier<Paint> currentFill, Consumer<Paint> updater) {
+        Timeline RGBTimeline = new Timeline(new KeyFrame(Duration.seconds(RGB_CHANGE_PERIOD),
+                event -> updater.accept(NEXT_COLOR_MAP.get(currentFill.get()))));
+        RGBTimeline.setCycleCount(Timeline.INDEFINITE);
+        RGBTimeline.play();
     }
 
     /*
