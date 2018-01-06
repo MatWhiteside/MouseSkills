@@ -42,17 +42,34 @@ public class ReactionTest {
 
         ballTimer.start();
 
-        centreCircle.setOnMouseEntered(event -> {
-            //START A TIMER ON TOP/SIZE OF SCREEN
-            ballTimer.updateValue();
-                centreCircle.setFill(Color.ORANGERED);
-        });
+        AnimationTimer animationTimer = new AnimationTimer() {
+            @Override
+            public void handle(long now) {
+                ballTimer.updateValue();
 
-        centreCircle.setOnMouseClicked(event -> {
-            if (ballTimer.getTotalTime() >= 100){
-                centreCircle.setFill(Color.GREEN);
+                //Set circle orange when user hovers over
+                centreCircle.setOnMouseEntered(event -> {
+                    //START A TIMER ON TOP/SIZE OF SCREEN
+                    centreCircle.setFill(Color.ORANGERED);
+                });
+
+                centreCircle.setOnMouseExited(event -> {
+                    if (centreCircle.getFill() == Color.ORANGERED){
+                        centreCircle.setFill(circleStartColour);
+                    }
+                });
+
+                //Set circle to green when user clicks
+                centreCircle.setOnMouseClicked(event -> {
+                    if (ballTimer.getTotalTime() >= 100){
+                        centreCircle.setFill(Color.GREEN);
+                    }
+                });
+                centreCircle.setCenterX(CENTRE_X);
+                centreCircle.setCenterY(CENTRE_Y);
             }
-        });
+        };
+
         // Main animation loop.
         // Note: max 60fps
         /*AnimationTimer animationTimer = new AnimationTimer() {
@@ -66,7 +83,7 @@ public class ReactionTest {
                 circle.setCenterY(ballY);
             }
         };
-
+        */
 
         // Event listener for key presses
         s.addEventHandler(KeyEvent.KEY_RELEASED, (key) -> {
@@ -77,7 +94,7 @@ public class ReactionTest {
 
         // Start the animation loop.
         animationTimer.start();
-        */
+
 
         return s;
     }
