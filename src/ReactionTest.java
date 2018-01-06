@@ -9,6 +9,15 @@ import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
 
 public class ReactionTest {
+    //Application Constants
+    private final int WINDOW_WIDTH = 800;
+    private final int WINDOW_HEIGHT = 600;
+
+    //Centre Circle Properties
+    private final int CENTRE_X = WINDOW_WIDTH / 2;
+    private final int CENTRE_Y = WINDOW_HEIGHT / 2;
+    private Circle centreCircle;
+    private Color circleStartColour = Color.RED;
 
     private int ballX = 100;
     private int ballY = 100;
@@ -18,19 +27,35 @@ public class ReactionTest {
         Group root = new Group();
 
         // Creates a scene
-        Scene s = new Scene(root, 800, 600);
+        Scene s = new Scene(root, WINDOW_WIDTH, WINDOW_HEIGHT);
 
-        // Creates a cirlce
-        Circle circle = new Circle();
-        circle.setCenterX(ballX);
-        circle.setCenterY(ballY);
-        circle.setRadius(40);
-        circle.setFill(Color.BLUE);
-        root.getChildren().add(circle);
+        //Create centre circle
+        centreCircle = new Circle();
+        centreCircle.setCenterX(CENTRE_X);
+        centreCircle.setCenterY(CENTRE_Y);
+        centreCircle.setRadius(20);
+        centreCircle.setFill(circleStartColour);
+        root.getChildren().add(centreCircle);
 
+        //Create ball timer
+        BallHoverTimer ballTimer = new BallHoverTimer();
+
+        ballTimer.start();
+
+        centreCircle.setOnMouseEntered(event -> {
+            //START A TIMER ON TOP/SIZE OF SCREEN
+            ballTimer.updateValue();
+                centreCircle.setFill(Color.ORANGERED);
+        });
+
+        centreCircle.setOnMouseClicked(event -> {
+            if (ballTimer.getTotalTime() >= 100){
+                centreCircle.setFill(Color.GREEN);
+            }
+        });
         // Main animation loop.
         // Note: max 60fps
-        AnimationTimer animationTimer = new AnimationTimer() {
+        /*AnimationTimer animationTimer = new AnimationTimer() {
             @Override
             public void handle(long now) {
                 // Move the ball right by 1px
@@ -42,6 +67,7 @@ public class ReactionTest {
             }
         };
 
+
         // Event listener for key presses
         s.addEventHandler(KeyEvent.KEY_RELEASED, (key) -> {
             if (key.getCode() == KeyCode.DOWN) {
@@ -51,6 +77,7 @@ public class ReactionTest {
 
         // Start the animation loop.
         animationTimer.start();
+        */
 
         return s;
     }
