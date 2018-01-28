@@ -27,9 +27,6 @@ public class TraceTest {
     // Application constants
     private static final int MIN_DIRECT_TIME = 500000000; // 500 ms
     private static final int MAX_DIRECT_TIME = 2000000000;// 2000 ms
-    private static final int WINDOW_WIDTH = 800;
-    private static final int WINDOW_HEIGHT = 600;
-    private static final int BALL_AREA_LEFT_BOUNDARY = WINDOW_WIDTH/4;
     private static final Font LABEL_FONT = new Font("Verdana", 16);
     private static final double MILLIS_TO_SECOND_DIVIDER = 1000.0;
     private static final double RGB_CHANGE_PERIOD = 0.25;
@@ -54,6 +51,9 @@ public class TraceTest {
     private static final Insets SETTINGS_PADDING = new Insets(0, 10, 0, 10);
 
     // Application properties
+    private int windowWidth = 800;
+    private int windowHeight = 600;
+    private int ballAreaLeftBoundary = windowWidth /4;
     private final Label timeInBallLabel = new Label("Time in ball: 0.00");
     private final Label timeLeftLabel = new Label("Time left: ");
     private Scene scene;
@@ -95,13 +95,13 @@ public class TraceTest {
         Group root = new Group();
 
         // VBox holds the timer labels
-        VBox timers = createSettingsGUI();
+        VBox settings = createSettingsGUI();
 
         timeInBallLabel.setFont(LABEL_FONT);
         timeLeftLabel.setFont(LABEL_FONT);
 
         // Creates a scene
-        scene = new Scene(root, WINDOW_WIDTH, WINDOW_HEIGHT);
+        scene = new Scene(root, windowWidth, windowHeight);
 
         timeOnBall = new BallHoverTimer();
         timeTaken = new BallHoverTimer();
@@ -110,11 +110,18 @@ public class TraceTest {
         targetBall = createBall();
 
         // Start the ball in the centre of the window
-        ballX = (int) ((WINDOW_WIDTH / 2) - (targetBall.getLayoutBounds().getWidth() / 2));
-        ballY = (int) ((WINDOW_HEIGHT / 2) - (targetBall.getLayoutBounds().getWidth() / 2));
+        ballX = (int) ((windowWidth / 2) - (targetBall.getLayoutBounds().getWidth() / 2));
+        ballY = (int) ((windowHeight / 2) - (targetBall.getLayoutBounds().getWidth() / 2));
 
         // Add the target ball and time labels to the scene
-        root.getChildren().addAll(targetBall, timers);
+        root.getChildren().addAll(targetBall, settings);
+
+        // Resize the GUI when the window is resized
+        scene.widthProperty().addListener((observable, oldValue, newValue) -> windowWidth = newValue.intValue());
+        scene.heightProperty().addListener((observable, oldValue, newValue) -> {
+            windowHeight = newValue.intValue();
+            settings.setPrefHeight(newValue.doubleValue());
+        });
 
         // Create main animation loop.
         AnimationTimer animationTimer = createGameLoop(stage);
@@ -226,7 +233,7 @@ public class TraceTest {
         parent.setAlignment(Pos.CENTER_LEFT);
         parent.setPadding(SETTINGS_PADDING);
         parent.setStyle("-fx-background-color: mintcream");
-        parent.setPrefSize(BALL_AREA_LEFT_BOUNDARY, WINDOW_HEIGHT);
+        parent.setPrefSize(ballAreaLeftBoundary, windowHeight);
         parent.getChildren().addAll(
                 timeInBallLabel, timeLeftLabel,
                 OFF_BALL_COLOUR_LABEL, offBallColourPicker,
@@ -433,13 +440,13 @@ public class TraceTest {
         double ballSize = targetBall.getLayoutBounds().getWidth();
 
         // If the ball has hit a horizontal wall
-        if (ballX + ballSize / 2 >= WINDOW_WIDTH || ballX - ballSize / 2 <= BALL_AREA_LEFT_BOUNDARY) {
+        if (ballX + ballSize / 2 >= windowWidth || ballX - ballSize / 2 <= ballAreaLeftBoundary) {
             right = !right;
             waitTillTime += MIN_DIRECT_TIME;
         }
 
         // If the ball has hit a vertical wall
-        if (ballY + ballSize / 2 >= WINDOW_HEIGHT || ballY - ballSize / 2 <= 0) {
+        if (ballY + ballSize / 2 >= windowHeight || ballY - ballSize / 2 <= 0) {
             down = !down;
             waitTillTime += MIN_DIRECT_TIME;
         }
