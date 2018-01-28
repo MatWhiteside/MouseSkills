@@ -46,8 +46,6 @@ public class TraceTest {
     private static final Label OFF_BALL_COLOUR_LABEL = new Label("Off ball colour");
     private static final Label RGB_BALL_LABEL = new Label("RGB Ball: ");
     private static final Label RGB_SCENE_LABEL = new Label("RGB Scene: ");
-    private static final Insets SETTINGS_LABEL_INSETS = new Insets(20, 0, 0, 0);
-    private static final Insets SETTINGS_BUTTON_INSETS = new Insets(30, 0, 0, 0);
     private static final Insets SETTINGS_PADDING = new Insets(0, 10, 0, 10);
 
     // Application properties
@@ -75,6 +73,8 @@ public class TraceTest {
     private Button applyButton;
     private CheckBox RGBBall;
     private CheckBox RGBScene;
+    private Insets settingsLabelInsets = new Insets(20, 0, 0, 0);
+    private Insets settingsButtonInsets = new Insets(30, 0, 0, 0);
 
 
     // Ball properties
@@ -116,11 +116,12 @@ public class TraceTest {
         // Add the target ball and time labels to the scene
         root.getChildren().addAll(targetBall, settings);
 
+
         // Resize the GUI when the window is resized
         scene.widthProperty().addListener((observable, oldValue, newValue) -> windowWidth = newValue.intValue());
         scene.heightProperty().addListener((observable, oldValue, newValue) -> {
             windowHeight = newValue.intValue();
-            settings.setPrefHeight(newValue.doubleValue());
+            updateSettingsGUI(settings, newValue);
         });
 
         // Create main animation loop.
@@ -133,6 +134,23 @@ public class TraceTest {
         animationTimer.start();
 
         return scene;
+    }
+
+    private void updateSettingsGUI(VBox settings, Number newHeight) {
+        settings.setPrefHeight(newHeight.intValue());
+        int newLabelTop = newHeight.intValue() / 30;
+        int newButtonTop = newHeight.intValue() / 20;
+        settingsLabelInsets = new Insets(newLabelTop, 0, 0, 0);
+        settingsButtonInsets = new Insets(newButtonTop, 0, 0, 0);
+
+        VBox.setMargin(OFF_BALL_COLOUR_LABEL, settingsLabelInsets);
+        VBox.setMargin(ON_BALL_COLOUR_LABEL, settingsLabelInsets);
+        VBox.setMargin(BALL_SPEED_LABEL, settingsLabelInsets);
+        VBox.setMargin(BALL_THICKNESS_LABEL, settingsLabelInsets);
+        VBox.setMargin(RUNTIME_LABEL, settingsLabelInsets);
+        VBox.setMargin(RGB_BALL_LABEL, settingsLabelInsets);
+        VBox.setMargin(RGB_SCENE_LABEL, settingsLabelInsets);
+        VBox.setMargin(applyButton, settingsButtonInsets);
     }
 
     /*
@@ -220,14 +238,14 @@ public class TraceTest {
         applyButton.setFont(LABEL_FONT);
 
         // Adding 20px padding above all the labels and 30px above the button
-        VBox.setMargin(OFF_BALL_COLOUR_LABEL, SETTINGS_LABEL_INSETS);
-        VBox.setMargin(ON_BALL_COLOUR_LABEL, SETTINGS_LABEL_INSETS);
-        VBox.setMargin(BALL_SPEED_LABEL, SETTINGS_LABEL_INSETS);
-        VBox.setMargin(BALL_THICKNESS_LABEL, SETTINGS_LABEL_INSETS);
-        VBox.setMargin(RUNTIME_LABEL, SETTINGS_LABEL_INSETS);
-        VBox.setMargin(RGB_BALL_LABEL, SETTINGS_LABEL_INSETS);
-        VBox.setMargin(RGB_SCENE_LABEL, SETTINGS_LABEL_INSETS);
-        VBox.setMargin(applyButton, SETTINGS_BUTTON_INSETS);
+        VBox.setMargin(OFF_BALL_COLOUR_LABEL, settingsLabelInsets);
+        VBox.setMargin(ON_BALL_COLOUR_LABEL, settingsLabelInsets);
+        VBox.setMargin(BALL_SPEED_LABEL, settingsLabelInsets);
+        VBox.setMargin(BALL_THICKNESS_LABEL, settingsLabelInsets);
+        VBox.setMargin(RUNTIME_LABEL, settingsLabelInsets);
+        VBox.setMargin(RGB_BALL_LABEL, settingsLabelInsets);
+        VBox.setMargin(RGB_SCENE_LABEL, settingsLabelInsets);
+        VBox.setMargin(applyButton, settingsButtonInsets);
 
         // Setting styles for the VBox and adding all the elements to it
         parent.setAlignment(Pos.CENTER_LEFT);
