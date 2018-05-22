@@ -47,18 +47,22 @@ public class TraceTest {
     private static final Label RGB_BALL_LABEL = new Label("RGB Ball: ");
     private static final Label RGB_SCENE_LABEL = new Label("RGB Scene: ");
     private static final Insets SETTINGS_PADDING = new Insets(0, 10, 0, 10);
+    // Formula = (windowHeight / X) * (windowHeight / Y) = top margin for settings elements
+    private static final int SETTINGS_MARGIN_FORMULA_X = 100;
+    private static final int SETTINGS_MARGIN_FORMULA_Y = 200;
+
 
     // Application properties
     private int windowWidth = 800;
-    private int windowHeight = 600;
+    private int windowHeight = 650;
     private int ballAreaLeftBoundary = windowWidth /4;
     private final Label timeInBallLabel = new Label("Time in ball: 0.00");
     private final Label timeLeftLabel = new Label("Time left: ");
     private Scene scene;
     private boolean mouseInCircle = false;
     private long waitTillTime = -1;
-    private BallHoverTimer timeTaken;
-    private BallHoverTimer timeOnBall;
+    private SimpleTimer timeTaken;
+    private SimpleTimer timeOnBall;
     private int runtime = 30000;
     private Timeline RGBBallTimeline = null;
     private Timeline RGBSceneTimeline = null;
@@ -71,11 +75,10 @@ public class TraceTest {
     private Slider ballThicknessSlider;
     private TextField runtimeTextField;
     private Button applyButton;
+    private Button backButton;
     private CheckBox RGBBall;
     private CheckBox RGBScene;
-    private Insets settingsLabelInsets = new Insets(20, 0, 0, 0);
-    private Insets settingsButtonInsets = new Insets(30, 0, 0, 0);
-
+    private Insets settingsInsets;
 
     // Ball properties
     private int ballSpeed = 3;
@@ -94,8 +97,11 @@ public class TraceTest {
         // Create a group, to hold objects
         Group root = new Group();
 
+        stage.setMinHeight(650);
+        stage.setMinWidth(800);
+
         // VBox holds the timer labels
-        VBox settings = createSettingsGUI();
+        VBox settings = createSettingsGUI(stage);
 
         timeInBallLabel.setFont(LABEL_FONT);
         timeLeftLabel.setFont(LABEL_FONT);
@@ -103,8 +109,8 @@ public class TraceTest {
         // Creates a scene
         scene = new Scene(root, windowWidth, windowHeight);
 
-        timeOnBall = new BallHoverTimer();
-        timeTaken = new BallHoverTimer();
+        timeOnBall = new SimpleTimer();
+        timeTaken = new SimpleTimer();
 
         // Creates a targetBall
         targetBall = createBall();
@@ -122,6 +128,19 @@ public class TraceTest {
         scene.heightProperty().addListener((observable, oldValue, newValue) -> {
             windowHeight = newValue.intValue();
             updateSettingsGUI(settings, newValue);
+            double ballSize = targetBall.getLayoutBounds().getWidth();
+
+            if (ballY + ballSize / 2 >= windowHeight)
+                ballY = (int)(windowHeight - (ballSize/2) - 20);
+
+            if (ballY - ballSize / 2 <= 0)
+                ballY = (int)((ballSize/2) + 20);
+
+            if (ballX + ballSize / 2 >= windowWidth)
+                ballX = (int)(windowWidth - (ballSize/2) - 20);
+
+            if (ballX - ballSize / 2 <= ballAreaLeftBoundary)
+                ballX = (int)(ballAreaLeftBoundary + (ballSize/2) + 20);
         });
 
         // Create main animation loop.
@@ -138,19 +157,18 @@ public class TraceTest {
 
     private void updateSettingsGUI(VBox settings, Number newHeight) {
         settings.setPrefHeight(newHeight.intValue());
-        int newLabelTop = newHeight.intValue() / 30;
-        int newButtonTop = newHeight.intValue() / 20;
-        settingsLabelInsets = new Insets(newLabelTop, 0, 0, 0);
-        settingsButtonInsets = new Insets(newButtonTop, 0, 0, 0);
+        int newTop = (windowHeight / SETTINGS_MARGIN_FORMULA_X) * (windowHeight / SETTINGS_MARGIN_FORMULA_Y);
+        settingsInsets = new Insets(newTop, 0, 0, 0);
 
-        VBox.setMargin(OFF_BALL_COLOUR_LABEL, settingsLabelInsets);
-        VBox.setMargin(ON_BALL_COLOUR_LABEL, settingsLabelInsets);
-        VBox.setMargin(BALL_SPEED_LABEL, settingsLabelInsets);
-        VBox.setMargin(BALL_THICKNESS_LABEL, settingsLabelInsets);
-        VBox.setMargin(RUNTIME_LABEL, settingsLabelInsets);
-        VBox.setMargin(RGB_BALL_LABEL, settingsLabelInsets);
-        VBox.setMargin(RGB_SCENE_LABEL, settingsLabelInsets);
-        VBox.setMargin(applyButton, settingsButtonInsets);
+        VBox.setMargin(OFF_BALL_COLOUR_LABEL, settingsInsets);
+        VBox.setMargin(ON_BALL_COLOUR_LABEL, settingsInsets);
+        VBox.setMargin(BALL_SPEED_LABEL, settingsInsets);
+        VBox.setMargin(BALL_THICKNESS_LABEL, settingsInsets);
+        VBox.setMargin(RUNTIME_LABEL, settingsInsets);
+        VBox.setMargin(RGB_BALL_LABEL, settingsInsets);
+        VBox.setMargin(RGB_SCENE_LABEL, settingsInsets);
+        VBox.setMargin(applyButton, settingsInsets);
+        VBox.setMargin(backButton, settingsInsets);
     }
 
     /*
@@ -159,12 +177,12 @@ public class TraceTest {
      - Time mouse was in ball
      - Time left
      - Colour picker for when mouse isn't on the ball
-     - Colour picker fo when mouse is on the ball
+     - Colour picker for when mouse is on the ball
      - Slider for ball speed
      - Slider for ball thickness
      - Text box for runtime
      */
-    private VBox createSettingsGUI() {
+    private VBox createSettingsGUI(Stage stage) {
         VBox parent = new VBox();
 
         // Create colour picker and set its value to the current one
@@ -227,6 +245,10 @@ public class TraceTest {
             reset();
         });
 
+        backButton = new Button("Back");
+        backButton.setPrefWidth(Double.MAX_VALUE);
+        backButton.setOnAction(event -> stage.setScene(new Menu().createScene(stage)));
+
         // Changing the fonts of the labels and the buttons
         OFF_BALL_COLOUR_LABEL.setFont(LABEL_FONT);
         ON_BALL_COLOUR_LABEL.setFont(LABEL_FONT);
@@ -236,16 +258,21 @@ public class TraceTest {
         RGB_BALL_LABEL.setFont(LABEL_FONT);
         RGB_SCENE_LABEL.setFont(LABEL_FONT);
         applyButton.setFont(LABEL_FONT);
+        backButton.setFont(LABEL_FONT);
+
+        int newTop = (windowHeight / SETTINGS_MARGIN_FORMULA_X) * (windowHeight / SETTINGS_MARGIN_FORMULA_Y);
+        settingsInsets = new Insets(newTop, 0, 0, 0);
 
         // Adding 20px padding above all the labels and 30px above the button
-        VBox.setMargin(OFF_BALL_COLOUR_LABEL, settingsLabelInsets);
-        VBox.setMargin(ON_BALL_COLOUR_LABEL, settingsLabelInsets);
-        VBox.setMargin(BALL_SPEED_LABEL, settingsLabelInsets);
-        VBox.setMargin(BALL_THICKNESS_LABEL, settingsLabelInsets);
-        VBox.setMargin(RUNTIME_LABEL, settingsLabelInsets);
-        VBox.setMargin(RGB_BALL_LABEL, settingsLabelInsets);
-        VBox.setMargin(RGB_SCENE_LABEL, settingsLabelInsets);
-        VBox.setMargin(applyButton, settingsButtonInsets);
+        VBox.setMargin(OFF_BALL_COLOUR_LABEL, settingsInsets);
+        VBox.setMargin(ON_BALL_COLOUR_LABEL, settingsInsets);
+        VBox.setMargin(BALL_SPEED_LABEL, settingsInsets);
+        VBox.setMargin(BALL_THICKNESS_LABEL, settingsInsets);
+        VBox.setMargin(RUNTIME_LABEL, settingsInsets);
+        VBox.setMargin(RGB_BALL_LABEL, settingsInsets);
+        VBox.setMargin(RGB_SCENE_LABEL, settingsInsets);
+        VBox.setMargin(applyButton, settingsInsets);
+        VBox.setMargin(backButton, settingsInsets);
 
         // Setting styles for the VBox and adding all the elements to it
         parent.setAlignment(Pos.CENTER_LEFT);
@@ -261,7 +288,7 @@ public class TraceTest {
                 RUNTIME_LABEL, runtimeTextField,
                 RGB_BALL_LABEL, RGBBall,
                 RGB_SCENE_LABEL, RGBScene,
-                applyButton
+                applyButton, backButton
         );
 
         return parent;
