@@ -1,4 +1,4 @@
-public class BallHoverTimer {
+public class SimpleTimer {
     private double totalTime = 0.00;
     private double startTime = 0.00;
 
