@@ -1,2 +1,1 @@
-Add back button from TraceTest to menu
-Make resizing work properly on all windows
+Reaction test glitch: results screen stays (green BG), timer starts then when pressing results screen it comes up again (black BG)
