@@ -8,6 +8,12 @@ import javafx.scene.paint.Paint;
 import javafx.scene.text.Font;
 import javafx.util.Duration;
 
+/**
+ * Class that shows a red screen, followed by a green screen after a random amount of time. When
+ * the green screen is shown the mouse is clicked and reaction time measured.
+ * @author Matthew Whiteside
+ */
+
 public class ReactionTest {
     // Application Constants
     private static final Label CENTRE_LABEL = new Label();
