@@ -18,11 +18,13 @@ public class ReactionTest {
     // Application Constants
     private static final Label CENTRE_LABEL = new Label();
     private static final Font LABEL_FONT = new Font("Verdana", 16);
+    private static final State START_STATE = State.INTRO;
 
     // Application properties
     private int windowWidth = 800;
     private int windowHeight = 600;
-    private State state = State.INTRO;
+    private State state;
+    private PauseTransition pause;
 
     public Scene createScene() {
         // Create a group, to hold objects
@@ -48,6 +50,9 @@ public class ReactionTest {
         // Setup a timer to time how long it takes the user to react
         SimpleTimer timer = new SimpleTimer();
 
+        // Set the start state
+        state = START_STATE;
+
         // Handle certain events when the screen is clicked
         s.setOnMouseClicked(event -> {
             System.out.println(state);
@@ -55,6 +60,10 @@ public class ReactionTest {
                 case INTRO:     // Change the label and start the test
                     state = State.RUNNING_RED;
                     CENTRE_LABEL.setText("Click when screen turns green...");
+                    waitRandomTime(s, timer);
+                    break;
+                case RUNNING_RED:   // If the red screen is clicked, reset the wait duration (so you can't cheat!)
+                    pause.stop();
                     waitRandomTime(s, timer);
                     break;
                 case RUNNING_GREEN: // If the background is green, record the click and move to results
@@ -86,15 +95,18 @@ public class ReactionTest {
         double time = (Math.random() * 5) + 1;
 
         // Pause for the amount of time generated
-        PauseTransition pause = new PauseTransition(
+        pause = new PauseTransition(
                 Duration.seconds(time)
         );
         // Change the scene colour, state and start the timer
         pause.setOnFinished(event -> {
-            state = State.RUNNING_GREEN;
-            setSceneColor(s, Color.GREEN);
-            t.reset();
-            t.start();
+            // Check the timer has actually finished and not been force stopped
+            if (Math.round(pause.getCurrentTime().toMillis()) >= Math.round(pause.getDuration().toMillis())) {
+                state = State.RUNNING_GREEN;
+                setSceneColor(s, Color.GREEN);
+                t.reset();
+                t.start();
+            }
         });
         // Start the pause
         System.out.println("pause playing");
