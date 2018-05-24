@@ -4,7 +4,6 @@ import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
@@ -135,6 +134,9 @@ public class ReactionGame {
         s.setFill(Paint.valueOf(c.toString()));
     }
 
+    /**
+     * Displays the RESET_LABEL for 3 seconds, appears instantly then fades out.
+     */
     private void displayResetText() {
         FadeTransition ft = new FadeTransition(Duration.millis(3000), RESET_LABEL);
         ft.setFromValue(1);
