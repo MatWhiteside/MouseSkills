@@ -161,9 +161,4 @@ public class ReactionGame {
         ft.setToValue(0);
         ft.play();
     }
-
-    private void resizeGUI() {
-
-    }
-
 }
