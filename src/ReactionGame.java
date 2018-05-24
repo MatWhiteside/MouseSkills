@@ -1,8 +1,11 @@
+import javafx.animation.FadeTransition;
 import javafx.animation.PauseTransition;
+import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.text.Font;
@@ -14,16 +17,18 @@ import javafx.util.Duration;
  * @author Matthew Whiteside
  */
 
-public class ReactionTest {
+public class ReactionGame {
     // Application Constants
     private static final Label CENTRE_LABEL = new Label();
+    private static final Label RESET_LABEL = new Label("Clicked too early! Timer reset");   // Label shown when clicking on the red screen
+
     private static final Font LABEL_FONT = new Font("Verdana", 16);
-    private static final State START_STATE = State.INTRO;
+    private static final ReactionGameStates START_STATE = ReactionGameStates.INTRO;
 
     // Application properties
     private int windowWidth = 800;
     private int windowHeight = 600;
-    private State state;
+    private ReactionGameStates state;
     private PauseTransition pause;
 
     public Scene createScene() {
@@ -34,9 +39,17 @@ public class ReactionTest {
         Scene s = new Scene(root, windowWidth, windowHeight);
         setSceneColor(s, Color.RED);
 
-        // Create a stack pane and add it to the scene
-        StackPane sp = new StackPane();
-        sp.setPrefSize(windowWidth, windowHeight);
+        // Create a VBox to hold multiple labels
+        VBox labelHolder = new VBox();
+        labelHolder.setPrefSize(windowWidth, windowHeight);
+        labelHolder.getChildren().add(CENTRE_LABEL);
+        labelHolder.getChildren().add(RESET_LABEL);
+        labelHolder.setAlignment(Pos.CENTER);
+
+        // Format reset label
+        RESET_LABEL.setFont(LABEL_FONT);
+        RESET_LABEL.setTextFill(Paint.valueOf(Color.WHITE.toString()));
+        RESET_LABEL.setOpacity(0);
 
         // Format centre label
         CENTRE_LABEL.setText("Click to start");
@@ -44,8 +57,7 @@ public class ReactionTest {
         CENTRE_LABEL.setTextFill(Paint.valueOf(Color.WHITE.toString()));
 
         // Add label to the centre of the stack pane
-        root.getChildren().add(sp);
-        sp.getChildren().add(CENTRE_LABEL);
+        root.getChildren().add(labelHolder);
 
         // Setup a timer to time how long it takes the user to react
         SimpleTimer timer = new SimpleTimer();
@@ -58,23 +70,24 @@ public class ReactionTest {
             System.out.println(state);
             switch (state) {
                 case INTRO:     // Change the label and start the test
-                    state = State.RUNNING_RED;
+                    state = ReactionGameStates.RUNNING_RED;
                     CENTRE_LABEL.setText("Click when screen turns green...");
                     waitRandomTime(s, timer);
                     break;
                 case RUNNING_RED:   // If the red screen is clicked, reset the wait duration (so you can't cheat!)
+                    displayResetText();
                     pause.stop();
                     waitRandomTime(s, timer);
                     break;
                 case RUNNING_GREEN: // If the background is green, record the click and move to results
-                    state = State.RESULTS;
+                    state = ReactionGameStates.RESULTS;
                     timer.updateValue();
                     timer.stop();
                     setSceneColor(s, Color.BLACK);
                     CENTRE_LABEL.setText("Reaction time: " + (int) timer.getTotalTime() + "ms\nClick to go again!");
                     break;
                 case RESULTS:       // Clear the results screen and start the test
-                    state = State.RUNNING_RED;
+                    state = ReactionGameStates.RUNNING_RED;
                     CENTRE_LABEL.setText("Click when screen turns green...");
                     setSceneColor(s, Color.RED);
                     waitRandomTime(s, timer);
@@ -102,7 +115,7 @@ public class ReactionTest {
         pause.setOnFinished(event -> {
             // Check the timer has actually finished and not been force stopped
             if (Math.round(pause.getCurrentTime().toMillis()) >= Math.round(pause.getDuration().toMillis())) {
-                state = State.RUNNING_GREEN;
+                state = ReactionGameStates.RUNNING_GREEN;
                 setSceneColor(s, Color.GREEN);
                 t.reset();
                 t.start();
@@ -122,15 +135,11 @@ public class ReactionTest {
         s.setFill(Paint.valueOf(c.toString()));
     }
 
-    /**
-     * Program can be in three states:
-     *  - Intro: the user is on the screen displaying "click to start"
-     *  - RUNNING_RED: the user is waiting for the screen to turn green
-     *  - RUNNING_GREEN: the user should click the screen now, it has gone green
-     *  - RESULTS: the results page is currently showing
-     */
-    private enum State {
-        INTRO, RUNNING_RED, RUNNING_GREEN, RESULTS
+    private void displayResetText() {
+        FadeTransition ft = new FadeTransition(Duration.millis(3000), RESET_LABEL);
+        ft.setFromValue(1);
+        ft.setToValue(0);
+        ft.play();
     }
 
 }

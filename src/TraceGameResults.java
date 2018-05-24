@@ -8,9 +8,9 @@ import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
 /**
- * Class to display the results after completing a play through of {@link TraceTest}.
+ * Class to display the results after completing a play through of {@link TraceGame}.
  */
-public class TraceTestResults {
+public class TraceGameResults {
 
     // Constants
     private static final Label TITLE = new Label("YOUR RESULTS");
@@ -52,7 +52,7 @@ public class TraceTestResults {
         // Create and style the back button
         back = new Button("Try again");
         back.setPrefWidth(Double.MAX_VALUE);
-        back.setOnAction(event -> stage.setScene(new TraceTest().createScene(stage)));
+        back.setOnAction(event -> stage.setScene(new TraceGame().createScene(stage)));
         back.setDefaultButton(true);
         back.setFont(LABEL_FONT);
 

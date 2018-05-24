@@ -1,4 +1,3 @@
-import javafx.application.Application;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -26,14 +25,14 @@ public class Menu {
         Button reactionTestButton = new Button("Reaction test");
         reactionTestButton.setPrefSize(150, 40);
         reactionTestButton.setOnAction(event -> {
-            stage.setScene(new ReactionTest().createScene());
+            stage.setScene(new ReactionGame().createScene());
         });
 
         // Create a button for the trace test
         Button traceTestButton = new Button("Trace test");
         traceTestButton.setPrefSize(150, 40);
         traceTestButton.setOnAction(event -> {
-            stage.setScene(new TraceTest().createScene(stage));
+            stage.setScene(new TraceGame().createScene(stage));
         });
 
         // Center everything in the VBox, set the spacing between elements and add all the elements

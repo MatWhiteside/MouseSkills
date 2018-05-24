@@ -23,7 +23,7 @@ import java.util.function.Supplier;
  * over the ball for as long as possible in the given time.
  * @author Matthew Whiteside
  */
-public class TraceTest {
+public class TraceGame {
     // Application constants
     private static final int MIN_DIRECT_TIME = 500000000; // 500 ms
     private static final int MAX_DIRECT_TIME = 2000000000;// 2000 ms
@@ -373,7 +373,7 @@ public class TraceTest {
                 // Check we're still under the set number of seconds
                 timeTaken.updateValue();
                 if(timeTaken.getTotalTime() >= runtime) {
-                    stage.setScene(new TraceTestResults().createScene(
+                    stage.setScene(new TraceGameResults().createScene(
                             millisToSeconds(timeOnBall.getTotalTime()),
                             millisToSeconds(runtime),
                             String.valueOf(ballSpeed),
