@@ -124,23 +124,28 @@ public class TraceGame {
 
 
         // Resize the GUI when the window is resized
-        scene.widthProperty().addListener((observable, oldValue, newValue) -> windowWidth = newValue.intValue());
-        scene.heightProperty().addListener((observable, oldValue, newValue) -> {
-            windowHeight = newValue.intValue();
-            updateSettingsGUI(settings, newValue);
+        scene.widthProperty().addListener((observable, oldValue, newValue) -> {
+            windowWidth = newValue.intValue();
             double ballSize = targetBall.getLayoutBounds().getWidth();
 
-            if (ballY + ballSize / 2 >= windowHeight)
-                ballY = (int)(windowHeight - (ballSize/2) - 20);
-
-            if (ballY - ballSize / 2 <= 0)
-                ballY = (int)((ballSize/2) + 20);
-
+            // Stop the ball getting caught in the edges of the window when resizing
             if (ballX + ballSize / 2 >= windowWidth)
                 ballX = (int)(windowWidth - (ballSize/2) - 20);
 
             if (ballX - ballSize / 2 <= ballAreaLeftBoundary)
                 ballX = (int)(ballAreaLeftBoundary + (ballSize/2) + 20);
+        });
+        scene.heightProperty().addListener((observable, oldValue, newValue) -> {
+            windowHeight = newValue.intValue();
+            updateSettingsGUI(settings, newValue);
+            double ballSize = targetBall.getLayoutBounds().getWidth();
+
+            // Stop the ball getting caught in the edges of the window when resizing
+            if (ballY + ballSize / 2 >= windowHeight)
+                ballY = (int)(windowHeight - (ballSize/2) - 20);
+
+            if (ballY - ballSize / 2 <= 0)
+                ballY = (int)((ballSize/2) + 20);
         });
 
         // Create main animation loop.
