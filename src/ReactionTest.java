@@ -24,9 +24,6 @@ public class ReactionTest {
     private int windowHeight = 600;
     private State state = State.INTRO;
 
-    private int ballX = 100;
-    private int ballY = 100;
-
     public Scene createScene() {
         // Create a group, to hold objects
         Group root = new Group();
@@ -53,19 +50,22 @@ public class ReactionTest {
 
         // Handle certain events when the screen is clicked
         s.setOnMouseClicked(event -> {
+            System.out.println(state);
             switch (state) {
                 case INTRO:     // Change the label and start the test
+                    state = State.RUNNING_RED;
                     CENTRE_LABEL.setText("Click when screen turns green...");
                     waitRandomTime(s, timer);
                     break;
                 case RUNNING_GREEN: // If the background is green, record the click and move to results
+                    state = State.RESULTS;
                     timer.updateValue();
                     timer.stop();
                     setSceneColor(s, Color.BLACK);
                     CENTRE_LABEL.setText("Reaction time: " + (int) timer.getTotalTime() + "ms\nClick to go again!");
-                    state = State.RESULTS;
                     break;
                 case RESULTS:       // Clear the results screen and start the test
+                    state = State.RUNNING_RED;
                     CENTRE_LABEL.setText("Click when screen turns green...");
                     setSceneColor(s, Color.RED);
                     waitRandomTime(s, timer);
@@ -91,12 +91,13 @@ public class ReactionTest {
         );
         // Change the scene colour, state and start the timer
         pause.setOnFinished(event -> {
-            setSceneColor(s, Color.GREEN);
             state = State.RUNNING_GREEN;
+            setSceneColor(s, Color.GREEN);
             t.reset();
             t.start();
         });
         // Start the pause
+        System.out.println("pause playing");
         pause.play();
     }
 
@@ -112,11 +113,12 @@ public class ReactionTest {
     /**
      * Program can be in three states:
      *  - Intro: the user is on the screen displaying "click to start"
+     *  - RUNNING_RED: the user is waiting for the screen to turn green
      *  - RUNNING_GREEN: the user should click the screen now, it has gone green
      *  - RESULTS: the results page is currently showing
      */
     private enum State {
-        INTRO, RUNNING_GREEN, RESULTS
+        INTRO, RUNNING_RED, RUNNING_GREEN, RESULTS
     }
 
 }
