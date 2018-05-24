@@ -21,8 +21,7 @@ public class ReactionGame {
     // Application Constants
     private static final Label CENTRE_LABEL = new Label();
     private static final Label RESET_LABEL = new Label("Clicked too early! Timer reset");   // Label shown when clicking on the red screen
-
-    private static final Font LABEL_FONT = new Font("Verdana", 16);
+    private static final Font LABEL_FONT = new Font("Verdana", 24);
     private static final ReactionGameStates START_STATE = ReactionGameStates.INTRO;
 
     // Application properties
@@ -30,6 +29,9 @@ public class ReactionGame {
     private int windowHeight = 600;
     private ReactionGameStates state;
     private PauseTransition pause;
+    private int totalMs = 0;    // Used for calculating average score
+    private int totalTurns = 0;
+    private FadeTransition resetFadeTransition;
 
     public Scene createScene() {
         // Create a group, to hold objects
@@ -97,11 +99,16 @@ public class ReactionGame {
                     waitRandomTime(s, timer);
                     break;
                 case RUNNING_GREEN: // If the background is green, record the click and move to results
+                    // Collect the result
                     state = ReactionGameStates.RESULTS;
                     timer.updateValue();
                     timer.stop();
                     setSceneColor(s, Color.BLACK);
-                    CENTRE_LABEL.setText("Reaction time: " + (int) timer.getTotalTime() + "ms\nClick to go again!");
+                    // Calculate the average
+                    totalMs += (int) timer.getTotalTime();
+                    totalTurns++;
+                    // Display the result
+                    CENTRE_LABEL.setText("Reaction time: " + (int) timer.getTotalTime() + "ms\nAverage: " + (totalMs/totalTurns) + "ms\nClick to go again!");
                     break;
                 case RESULTS:       // Clear the results screen and start the test
                     state = ReactionGameStates.RUNNING_RED;
@@ -122,16 +129,17 @@ public class ReactionGame {
      */
     private void waitRandomTime(Scene s, SimpleTimer t) {
         // Generate a time between 1 and 6s
-        double time = (Math.random() * 5) + 1;
+        double time = (Math.random() * 0) + 1;
 
         // Pause for the amount of time generated
-        pause = new PauseTransition(
-                Duration.seconds(time)
-        );
+        pause = new PauseTransition(Duration.seconds(time));
+
         // Change the scene colour, state and start the timer
         pause.setOnFinished(event -> {
             // Check the timer has actually finished and not been force stopped
             if (Math.round(pause.getCurrentTime().toMillis()) >= Math.round(pause.getDuration().toMillis())) {
+                resetFadeTransition.stop(); // Hide the reset label as it shouldn't be showing anymore
+                RESET_LABEL.setOpacity(0);
                 state = ReactionGameStates.RUNNING_GREEN;
                 setSceneColor(s, Color.GREEN);
                 t.reset();
@@ -156,9 +164,9 @@ public class ReactionGame {
      * Displays the RESET_LABEL for 3 seconds, appears instantly then fades out.
      */
     private void displayResetText() {
-        FadeTransition ft = new FadeTransition(Duration.millis(3000), RESET_LABEL);
-        ft.setFromValue(1);
-        ft.setToValue(0);
-        ft.play();
+        resetFadeTransition = new FadeTransition(Duration.millis(3000), RESET_LABEL);
+        resetFadeTransition.setFromValue(1);
+        resetFadeTransition.setToValue(0);
+        resetFadeTransition.play();
     }
 }
