@@ -4,6 +4,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
@@ -55,14 +56,31 @@ public class ReactionGame {
         CENTRE_LABEL.setFont(LABEL_FONT);
         CENTRE_LABEL.setTextFill(Paint.valueOf(Color.WHITE.toString()));
 
-        // Add label to the centre of the stack pane
-        root.getChildren().add(labelHolder);
+        // Creates a border pane that holds the elements of the scene
+        BorderPane parentLayout = new BorderPane();
+        parentLayout.setPrefSize(windowWidth, windowHeight);
+        parentLayout.setCenter(labelHolder);
+
+        // Add parent layout to the centre of the stack pane
+        root.getChildren().add(parentLayout);
 
         // Setup a timer to time how long it takes the user to react
         SimpleTimer timer = new SimpleTimer();
 
         // Set the start state
         state = START_STATE;
+
+        // Update window sizes when the window size is changed
+        s.widthProperty().addListener((observable, oldValue, newValue) -> {
+            windowWidth = newValue.intValue();
+            labelHolder.setPrefWidth(windowWidth);
+            parentLayout.setPrefWidth(windowWidth);
+        });
+        s.heightProperty().addListener((observable, oldValue, newValue) -> {
+            windowHeight = newValue.intValue();
+            labelHolder.setPrefHeight(windowHeight);
+            parentLayout.setPrefHeight(windowHeight);
+        });
 
         // Handle certain events when the screen is clicked
         s.setOnMouseClicked(event -> {
@@ -142,6 +160,10 @@ public class ReactionGame {
         ft.setFromValue(1);
         ft.setToValue(0);
         ft.play();
+    }
+
+    private void resizeGUI() {
+
     }
 
 }
