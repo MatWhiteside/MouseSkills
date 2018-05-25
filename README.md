@@ -5,4 +5,4 @@ Done so far:
  - Hover game: hover the mouse over a moving ball for as long as possible
  - Reactions game: test your reaction times
  
-Written in the second year of university.
+Written in the second year of university (side project). Open project in intelliJ, JDK 9.
